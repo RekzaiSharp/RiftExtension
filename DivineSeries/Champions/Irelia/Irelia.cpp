@@ -162,17 +162,18 @@ namespace Irelia
 				
 			}
 
-			/*auto fleeMenu = main_tab->add_tab(myhero->get_model() + ".flee", "[Misc] - Flee");
+			auto fleeMenu = main_tab->add_tab(myhero->get_model() + ".flee", "[Misc] - Flee");
 			{
-				menuSettings::flee_q = fleeMenu->add_checkbox(myhero->get_model() + ".fleeQ", "Use Q", true);
+				fleeMenu->add_separator("irelia.seperatorflee1", "Comes with next Update");
+				/*menuSettings::flee_q = fleeMenu->add_checkbox(myhero->get_model() + ".fleeQ", "Use Q", true);
 				menuSettings::flee_q_distance = rMenu->add_slider(myhero->get_model() + ".fleeQDist", "Q Min. Distance", 250, 150, 550);
 				menuSettings::flee_e = fleeMenu->add_checkbox(myhero->get_model() + ".fleeE", "Use E", true);
 				fleeMenu->add_separator("irelia.seperatorflee1", "Advanced Settings");
 				menuSettings::flee_jungle = fleeMenu->add_checkbox(myhero->get_model() + ".fleeJungle", "Use Jungle", true);
 				menuSettings::flee_r = fleeMenu->add_checkbox(myhero->get_model() + ".fleeR", "Use R", true);
 				menuSettings::flee_r_enemy = rMenu->add_slider(myhero->get_model() + ".fleeRCount", "R Min. Enemies", 4, 1, 5);
-				menuSettings::flee_r_hp = rMenu->add_slider(myhero->get_model() + ".fleeRHP", "R Min. Health", 20, 10, 100);
-			}*/
+				menuSettings::flee_r_hp = rMenu->add_slider(myhero->get_model() + ".fleeRHP", "R Min. Health", 20, 10, 100);*/
+			}
 
 			auto hitchance = main_tab->add_tab("dsirelia.hitchance", "[Misc] - Hitchance");
 			{
@@ -283,15 +284,15 @@ namespace Irelia
 		if (orbwalker->lane_clear_mode())
 			LaneClear();
 
-		/*if (orbwalker->last_hit_mode())
-			Lasthit();*/
+		if (orbwalker->last_hit_mode())
+			Lasthit();
 
-		if (menuSettings::debugKey->get_bool())
+		/*if (menuSettings::debugKey->get_bool())
 		{
 			auto cursorPos = hud->get_hud_input_logic()->get_game_cursor_position();
 			auto pos = std::to_string(gametime->get_time()) + " - " + std::to_string(cursorPos.x) + ", " + std::to_string(cursorPos.y) + ", " + std::to_string(cursorPos.z);
 			console->print(pos.c_str());
-		}
+		}*/
 	}
 
 	float GetRealQDamage(game_object_script target)
