@@ -1,5 +1,5 @@
 #pragma once
-#include "../../plugin_sdk/plugin_sdk.hpp"
+#include "../../../plugin_sdk/plugin_sdk.hpp"
 
 namespace Irelia
 {
@@ -9,8 +9,6 @@ namespace Irelia
 	void OnUpdate();
 	float GetRealQDamage(game_object_script target);
 	void DrawDamage(game_object_script target, float damage);
-	void OnCreateObject(game_object_script sender);
-	void OnDeleteObject(game_object_script sender);
 
 
 	void Combo();

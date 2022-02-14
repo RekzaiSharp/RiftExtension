@@ -159,20 +159,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\plugin_sdk\clipper.cpp" />
+    <ClCompile Include="..\plugin_sdk\plugin_sdk.cpp" />
     <ClCompile Include="Champions\Irelia\Irelia.cpp" />
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="plugin_sdk\clipper.cpp" />
-    <ClCompile Include="plugin_sdk\plugin_sdk.cpp" />
     <ClCompile Include="Champions\Rengar\Rengar.cpp" />
     <ClCompile Include="Champions\Riven\Riven.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\plugin_sdk\clipper.h" />
+    <ClInclude Include="..\plugin_sdk\cpplinq.h" />
+    <ClInclude Include="..\plugin_sdk\plugin_sdk.hpp" />
     <ClInclude Include="Champions\Irelia\Irelia.h" />
-    <ClInclude Include="plugin_sdk\clipper.h" />
-    <ClInclude Include="plugin_sdk\cpplinq.h" />
-    <ClInclude Include="plugin_sdk\plugin_sdk.hpp" />
     <ClInclude Include="Champions\Rengar\Rengar.h" />
     <ClInclude Include="Champions\Riven\Riven.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\plugin_sdk\.gitignore" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

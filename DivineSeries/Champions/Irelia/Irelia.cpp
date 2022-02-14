@@ -205,8 +205,6 @@ namespace Irelia
 		
 		event_handler<events::on_update>::add_callback(OnUpdate);
 		event_handler<events::on_draw>::add_callback(OnDraw);
-		event_handler<events::on_create_object>::add_callback(OnCreateObject);
-		event_handler<events::on_delete_object>::add_callback(OnDeleteObject);
 	}
 
 	void OnDraw()
@@ -234,26 +232,6 @@ namespace Irelia
 			}
 		}
 
-	}
-
-	void OnCreateObject(game_object_script sender)
-	{
-		if (std::string(sender->get_name_cstr()).find("_E_Blades") == std::string::npos)
-			return;
-
-		if (active_blade.netId == NULL)
-		{
-			active_blade.netId = sender->get_network_id();
-			active_blade.position = sender->get_position();
-		}
-	}
-
-	void OnDeleteObject(game_object_script sender)
-	{
-		if (sender->get_network_id() == active_blade.netId)
-		{
-			active_blade.netId = NULL;
-		}
 	}
 
 	hit_chance get_hitchance_by_config(TreeEntry* hit)
@@ -315,6 +293,8 @@ namespace Irelia
 
 		if (myhero->has_item(ItemId::Titanic_Hydra) != spellslot::invalid) physicalDamage += 4.f + myhero->get_max_health() * 0.015f;
 		if (myhero->has_item(ItemId::Ravenous_Hydra) != spellslot::invalid) physicalDamage += 4.f + myhero->get_max_health() * 0.015f;
+
+
 		
 		totalDamage = damagelib->calculate_damage_on_unit(myhero, target, damage_type::physical, physicalDamage);
 		totalDamage = damagelib->calculate_damage_on_unit(myhero, target, damage_type::magical, magicalDamage);
@@ -429,14 +409,19 @@ namespace Irelia
 		{
 			Gapcloser();
 		}
+
+		for (auto& buff : myhero->get_bufflist())
+		{
+			if (!buff->is_valid()) continue;
+			console->print(buff->get_name_cstr());
+		}
 	}
 
 	void LaneClear()
 	{
 		if (menuSettings::clear_q->get_bool() && myhero->get_mana_percent() >= menuSettings::qManaPerc->get_int() && q->is_ready())
 		{
-			auto minions = entitylist->get_enemy_minions();
-			for (auto& minion : minions)
+			for (auto& minion : entitylist->get_enemy_minions())
 			{
 				if (myhero->get_health_percent() <= menuSettings::farm_qHp->get_int() && minion->count_allies_in_range(menuSettings::farm_qEnemyRange->get_int()) >= 1)
 					continue;
@@ -496,6 +481,7 @@ namespace Irelia
 							GetRealQDamage(enemy))
 							q->cast(enemy);
 					}
+					
 				}
 				
 
@@ -587,7 +573,5 @@ namespace Irelia
 
 		event_handler<events::on_update>::remove_handler(OnUpdate);
 		event_handler<events::on_draw>::remove_handler(OnDraw);
-		event_handler<events::on_create_object>::remove_handler(OnCreateObject);
-		event_handler<events::on_delete_object>::remove_handler(OnDeleteObject);
 	}
 }
