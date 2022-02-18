@@ -14,8 +14,9 @@ namespace Irelia
 	script_spell* e = nullptr;
 	script_spell* r = nullptr;
 
-	blade active_blade;
 	vector blade_pos;
+	bool isCharging = false;
+	float chargeTime = 0.f;
 
 	TreeTab* main_tab = nullptr;
 	vector fleePos1[] =
@@ -33,12 +34,12 @@ namespace Irelia
 
 	namespace menuSettings
 	{
+		// Q Settings
 		TreeEntry* combo_q = nullptr;
 		TreeEntry* clear_q = nullptr;
 		TreeEntry* combo_qMode = nullptr;
 		TreeEntry* combo_qKs = nullptr;
 		TreeEntry* combo_qStack = nullptr;
-		TreeEntry* combo_qTurret = nullptr;
 		TreeEntry* combo_qSpam = nullptr;
 		TreeEntry* qManaPerc = nullptr;
 		TreeEntry* combo_qhp = nullptr;
@@ -46,16 +47,20 @@ namespace Irelia
 		TreeEntry* combo_hpmaxdist = nullptr;
 		TreeEntry* farm_qHp = nullptr;
 		TreeEntry* farm_qEnemyRange = nullptr;
+		TreeEntry* dontqturrentkey = nullptr;
 
 		// W Settings
 		TreeEntry* combo_w = nullptr;
 		TreeEntry* farm_w = nullptr;
 		TreeEntry* farm_w_mana = nullptr;
 		TreeEntry* w_damagePercent = nullptr;
+		TreeEntry* w_chargeDuration = nullptr;
 
 		// E Settings
 		TreeEntry* combo_e = nullptr;
 		TreeEntry* combo_eMode = nullptr;
+		TreeEntry* combo_e_mask = nullptr;
+		TreeEntry* combo_e_extendrange = nullptr;
 
 		// R Settings
 		TreeEntry* combo_r = nullptr;
@@ -80,6 +85,7 @@ namespace Irelia
 		// Drawings
 		TreeEntry* draw_enable = nullptr;
 		TreeEntry* draw_damage = nullptr;	
+		TreeEntry* draw_text = nullptr;
 		TreeEntry* draw_range_q = nullptr;
 		TreeEntry* draw_range_extended_q = nullptr;
 		TreeEntry* draw_range_w = nullptr;
@@ -117,7 +123,7 @@ namespace Irelia
 				menuSettings::combo_qMode = qMenu->add_combobox(myhero->get_model() + ".comboQMode", "Q Mode", qModes, 0, true);
 				menuSettings::combo_qKs = qMenu->add_checkbox(myhero->get_model() + ".comboUseKs", "Q Killsteal", true);
 				menuSettings::combo_qStack = qMenu->add_checkbox(myhero->get_model() + ".comboQStack", "Stack before Engage", true);
-				menuSettings::combo_qTurret = qMenu->add_checkbox(myhero->get_model() + ".comboQTurret", "Dont Q under Turrets", true);
+				menuSettings::dontqturrentkey = qMenu->add_hotkey("debug.key", "Dont Q Under Turret", TreeHotkeyMode::Toggle, 0x54, true);
 				menuSettings::combo_qSpam = qMenu->add_checkbox(myhero->get_model() + ".comboQTurret", "Q Every Mark", true);
 				qMenu->add_separator("irelia.seperatorq1", "Farming");
 				menuSettings::clear_q = qMenu->add_checkbox(myhero->get_model() + ".comboUseQclear", "Use in Clear", true);
@@ -140,6 +146,7 @@ namespace Irelia
 				wMenu->set_assigned_texture(myhero->get_spell(spellslot::w)->get_icon_texture());
 				menuSettings::combo_w = wMenu->add_checkbox(myhero->get_model() + ".comboUseW", "Use W", true);
 				menuSettings::w_damagePercent = wMenu->add_slider(myhero->get_model() + ".wdamageperc", "Damage %", 15, 1, 100);
+				menuSettings::w_chargeDuration = wMenu->add_slider(myhero->get_model() + ".wchargeduration", "W Charge Duration (ms)", 500, 250, 1000);
 				wMenu->add_separator("irelia.seperatorw1", "Lasthit");
 				menuSettings::farm_w = wMenu->add_checkbox(myhero->get_model() + ".farmUseW", "Use W", true);
 				menuSettings::farm_w_mana = wMenu->add_slider(myhero->get_model() + ".wmanaperc", "Mana %", 15, 1, 100);
@@ -150,8 +157,9 @@ namespace Irelia
 			{
 				eMenu->set_assigned_texture(myhero->get_spell(spellslot::e)->get_icon_texture());
 				menuSettings::combo_e = eMenu->add_checkbox(myhero->get_model() + ".comboUseE", "Use E", true);
-				//std::vector < std::pair<std::string, void*>> eModes = { { "Mouse", nullptr }, { "Under Player", nullptr } };
-				//menuSettings::combo_eMode = eMenu->add_combobox(myhero->get_model() + ".comboEMode", "First Blade", eModes, 0, true);
+				std::vector < std::pair<std::string, void*>> eModes = { { "Behind Player", nullptr }, { "Cursor", nullptr } };
+				menuSettings::combo_eMode = eMenu->add_combobox(myhero->get_model() + ".comboEMode", "First Blade Pos", eModes, 0, true);
+				menuSettings::combo_e_extendrange = eMenu->add_slider(myhero->get_model() + ".eextendrange", "Extend Range", 150, 0, e->range());
 			}
 
 			auto rMenu = main_tab->add_tab(myhero->get_model() + ".R", "[R] - Vanguard's Edge");
@@ -187,6 +195,7 @@ namespace Irelia
 				drawingMenu->add_separator("irelia.seperatordraw1", "Global Settings");
 				menuSettings::draw_enable = drawingMenu->add_checkbox(myhero->get_model() + ".draw", "Draw Spells", true);
 				menuSettings::draw_damage = drawingMenu->add_checkbox(myhero->get_model() + ".drawDamage", "Draw Damage", true);
+				menuSettings::draw_text = drawingMenu->add_checkbox(myhero->get_model() + ".drawText", "Draw Text", true);
 				drawingMenu->add_separator("irelia.seperatordraw2", "Spell Settings");
 				menuSettings::draw_range_q = drawingMenu->add_checkbox(myhero->get_model() + ".drawQ", "Draw Q Range", true);
 				menuSettings::draw_range_extended_q = drawingMenu->add_checkbox(myhero->get_model() + ".drawQE", "Draw Extended Q Range", true);
@@ -200,7 +209,7 @@ namespace Irelia
 				menuSettings::draw_damage_r = drawingMenu->add_checkbox(myhero->get_model() + ".drawRD", "Draw R Damage", true);
 			}
 
-			//menuSettings::debugKey = main_tab->add_hotkey("debug.key", "Debug Key", TreeHotkeyMode::Hold, 0x54, false);
+			menuSettings::debugKey = main_tab->add_hotkey("debug.key", "Debug Key", TreeHotkeyMode::Hold, 0x56, false);
 		}
 		
 		event_handler<events::on_update>::add_callback(OnUpdate);
@@ -231,6 +240,14 @@ namespace Irelia
 				DrawDamage(enemy, damage);
 			}
 		}
+
+		if (menuSettings::draw_text->get_bool())
+		{
+			auto const qTurretColor = menuSettings::dontqturrentkey->get_bool() ? MAKE_COLOR(245, 66, 66, 255) : MAKE_COLOR(87, 245, 66, 255);
+			draw_manager->add_text(myhero->get_position() + vector(0, -50, 0), qTurretColor, 16, "Q Under Turret");
+		}
+		
+		
 
 	}
 
@@ -265,12 +282,11 @@ namespace Irelia
 		if (orbwalker->last_hit_mode())
 			Lasthit();
 
-		/*if (menuSettings::debugKey->get_bool())
+		if (menuSettings::debugKey->get_bool())
 		{
-			auto cursorPos = hud->get_hud_input_logic()->get_game_cursor_position();
-			auto pos = std::to_string(gametime->get_time()) + " - " + std::to_string(cursorPos.x) + ", " + std::to_string(cursorPos.y) + ", " + std::to_string(cursorPos.z);
-			console->print(pos.c_str());
-		}*/
+			auto hpvalue = std::to_string((myhero->get_max_health() / 100) * menuSettings::w_damagePercent->get_int()).c_str();
+			console->print(hpvalue);
+		}
 	}
 
 	float GetRealQDamage(game_object_script target)
@@ -293,12 +309,12 @@ namespace Irelia
 
 		if (myhero->has_item(ItemId::Titanic_Hydra) != spellslot::invalid) physicalDamage += 4.f + myhero->get_max_health() * 0.015f;
 		if (myhero->has_item(ItemId::Ravenous_Hydra) != spellslot::invalid) physicalDamage += 4.f + myhero->get_max_health() * 0.015f;
-
-
 		
 		totalDamage = damagelib->calculate_damage_on_unit(myhero, target, damage_type::physical, physicalDamage);
 		totalDamage = damagelib->calculate_damage_on_unit(myhero, target, damage_type::magical, magicalDamage);
 		totalDamage += q->get_damage(target);
+
+		if (target->is_minion() && target->has_buff(buff_hash("barondebuff"))) totalDamage * 0.6;
 		
 		return totalDamage;
 	}
@@ -339,7 +355,7 @@ namespace Irelia
 
 					if (minion->get_health() <= GetRealQDamage(minion) && myhero->get_distance(target->get_position()) >= minion->get_distance(target->get_position()))
 					{
-						if (minion->get_position().is_under_enemy_turret() && menuSettings::combo_qTurret->get_bool())
+						if (minion->get_position().is_under_enemy_turret() && menuSettings::dontqturrentkey->get_bool())
 						{
 							auto allied_minions = entitylist->get_ally_minions();
 							for (auto& aMinion : allied_minions)
@@ -392,12 +408,31 @@ namespace Irelia
 				GatherStacks(target);
 
 			//Scuffed w implementation
-			if (w->is_ready() && menuSettings::combo_w->get_bool())
+			if (w->is_ready() && menuSettings::combo_w->get_bool() && !isCharging)
 			{
+
 				if (health_prediction->get_incoming_damage(myhero, 1.5f, true) >= (myhero->get_max_health() / 100) * menuSettings::w_damagePercent->get_int())
 				{
 					if (!myhero->is_under_enemy_turret())
+					{
 						w->cast();
+						chargeTime = gametime->get_time();
+						isCharging = true;
+						console->print("w casted, chargetime set and ischarging.");
+					}
+				}
+			}
+
+			if (w->is_ready() && isCharging)
+			{
+				if (gametime->get_time() - chargeTime >= (menuSettings::w_chargeDuration->get_int() / 1000.f))
+				{
+					if (target)
+					{
+						myhero->update_charged_spell(w->slot, target->get_position(), true);
+						isCharging = false;
+					}
+					
 				}
 			}
 
@@ -408,12 +443,6 @@ namespace Irelia
 		else
 		{
 			Gapcloser();
-		}
-
-		for (auto& buff : myhero->get_bufflist())
-		{
-			if (!buff->is_valid()) continue;
-			console->print(buff->get_name_cstr());
 		}
 	}
 
@@ -428,7 +457,7 @@ namespace Irelia
 
 				if (minion->get_health() <= GetRealQDamage(minion) && minion->get_distance(myhero) <= 600)
 				{
-					if (menuSettings::combo_qTurret->get_bool() && minion->get_position().is_under_enemy_turret())
+					if (menuSettings::dontqturrentkey->get_bool() && minion->get_position().is_under_enemy_turret())
 					{
 						auto allyminions = entitylist->get_ally_minions();
 						for (auto& aMinion : allyminions)
@@ -500,7 +529,7 @@ namespace Irelia
 
 				if (menuSettings::combo_qMode->get_int() == 0)
 				{
-					if (myhero->get_distance(target) >= 500.f && myhero->get_distance(target) <= 600 && target->get_health() +
+					if (myhero->get_distance(target) >= myhero->get_attack_range() + 50.f && myhero->get_distance(target) <= 600 && target->get_health() +
 						target->get_physical_shield() + 10 <= GetRealQDamage(target) + myhero->get_auto_attack_damage(target, true) * 2)
 						q->cast(target);
 				}
@@ -519,12 +548,20 @@ namespace Irelia
 	
 		if (strcmp(e->name().c_str(), "IreliaE") == 0 && e->is_ready())
 		{
-			
-			auto extendedPos = target->get_position().extend(myhero->get_position(), myhero->get_distance(target) + e->range());
-			if (extendedPos.is_valid())
+			if (menuSettings::combo_eMode->get_int() == 0)
 			{
-				e->cast(extendedPos);
-				blade_pos = extendedPos;
+				auto extendedPos = target->get_position().extend(myhero->get_position(), myhero->get_distance(target) + e->range());
+				if (extendedPos.is_valid())
+				{
+					e->cast(extendedPos);
+					blade_pos = extendedPos;
+				}
+			}
+			else
+			{
+				auto castpos = hud->get_hud_input_logic()->get_game_cursor_position();
+				e->cast(castpos);
+				blade_pos = castpos;
 			}
 				
 		}
@@ -532,7 +569,11 @@ namespace Irelia
 		{
 			auto pred = e->get_prediction(target);
 			if (pred.hitchance >= get_hitchance_by_config(menuSettings::e_hitchance))
-				e->cast(blade_pos.extend(pred.get_cast_position(), 4000));			
+			{
+				auto extendby = blade_pos.distance(target) + menuSettings::combo_e_extendrange->get_int();
+				e->cast(blade_pos.extend(pred.get_cast_position(), extendby));
+			}
+						
 		}
 		
 	}

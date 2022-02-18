@@ -20,12 +20,4 @@ namespace Irelia
 	void VanguardsEdge();
 	void GatherStacks(game_object_script target);
 	void Gapcloser();
-	
-	struct blade
-	{
-		unsigned netId;
-		unsigned creationTime;
-		vector position;
-	};
-	
 };
