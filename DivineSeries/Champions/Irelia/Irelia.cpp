@@ -209,7 +209,7 @@ namespace Irelia
 				menuSettings::draw_damage_r = drawingMenu->add_checkbox(myhero->get_model() + ".drawRD", "Draw R Damage", true);
 			}
 
-			menuSettings::debugKey = main_tab->add_hotkey("debug.key", "Debug Key", TreeHotkeyMode::Hold, 0x56, false);
+			//menuSettings::debugKey = main_tab->add_hotkey("debug.key", "Debug Key", TreeHotkeyMode::Hold, 0x56, false);
 		}
 		
 		event_handler<events::on_update>::add_callback(OnUpdate);
@@ -282,11 +282,11 @@ namespace Irelia
 		if (orbwalker->last_hit_mode())
 			Lasthit();
 
-		if (menuSettings::debugKey->get_bool())
+		/*if (menuSettings::debugKey->get_bool())
 		{
 			auto hpvalue = std::to_string((myhero->get_max_health() / 100) * menuSettings::w_damagePercent->get_int()).c_str();
 			console->print(hpvalue);
-		}
+		}*/
 	}
 
 	float GetRealQDamage(game_object_script target)
